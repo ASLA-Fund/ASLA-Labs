@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASLA Labs</title>
+<meta name="description" content="Internal tools and sites built in-house by ASLA.">
+<style>
+  :root {
+    --bg: #f5f6f2;
+    --surface: #ffffff;
+    --ink: #1c2a22;
+    --muted: #5b6a61;
+    --line: #dfe3dc;
+    --accent: #2f6b4f;
+    --accent-ink: #ffffff;
+    --chip: #e8efe9;
+    --shadow: 0 1px 2px rgba(20,40,30,.06), 0 4px 14px rgba(20,40,30,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121815; --surface: #1a221e; --ink: #e8eee9; --muted: #9aaba1;
+      --line: #2b3731; --accent: #6fc19a; --accent-ink: #0f1a14; --chip: #243029;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px 64px; }
+  header { padding: 48px 0 24px; }
+  h1 { margin: 0 0 8px; font-size: clamp(2rem, 5vw, 2.8rem); letter-spacing: -.02em; }
+  header p { margin: 0; max-width: 62ch; color: var(--muted); font-size: 1.05rem; }
+  .tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 8px; }
+  input[type=search] {
+    flex: 1 1 240px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); font: inherit;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    padding: 7px 13px; border-radius: 999px; font: inherit; font-size: .9rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  h2 { margin: 36px 0 14px; font-size: 1.15rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+  .tile {
+    display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; box-shadow: var(--shadow);
+  }
+  .tile h3 { margin: 0 0 2px; font-size: 1.2rem; }
+  .host { font-size: .8rem; color: var(--muted); margin-bottom: 10px; word-break: break-all; }
+  .tile p { margin: 0 0 18px; color: var(--ink); flex: 1; font-size: .96rem; }
+  .btn {
+    align-self: flex-start; display: inline-block; text-decoration: none; font-weight: 600;
+    padding: 9px 16px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:focus-visible, .chip:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .btn.soon { background: var(--chip); color: var(--muted); pointer-events: none; }
+  .empty { display: none; color: var(--muted); padding: 24px 0; }
+  footer { margin-top: 48px; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ASLA Labs</h1>
+    <p>Software and sites ASLA has built in-house. Pick a tool below to sign in or open it.</p>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Search tools…" aria-label="Search tools">
+      <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+    </div>
+  </header>
+  <main id="main"></main>
+  <p class="empty" id="empty">No tools match your search.</p>
+  <footer>Built and maintained by ASLA. Access to most tools requires an ASLA account or invitation.</footer>
+</div>
+
+<script>
+// url: null renders a "Link coming soon" button. Edit freely.
+const TOOLS = [
+  // Members & Community
+  { cat: "Members & Community", name: "Business Council Portal", url: "https://bc.asla.org",
+    desc: "A private home for the ASLA Business Council between meetings. Council members continue conversations, ask questions, build profiles and find session materials, with a daily digest to keep everyone current." },
+  { cat: "Members & Community", name: "MembersIQ", url: "https://memberiq.aslalabs.org/login",
+    desc: "A member intelligence workspace for ASLA staff. Look up member and company information in one place to support outreach, engagement and renewals." },
+  { cat: "Members & Community", name: "Member Voices", url: "https://membervoices.aslalabs.org",
+    desc: "The searchable database of real member quotes and testimonials gathered through recorded interviews. Staff use it to find verbatim, properly attributed quotes for presentations, web pages and communications." },
+  { cat: "Members & Community", name: "ASLA Pathways", url: "https://pathways.aslalabs.org/signin",
+    desc: "The application and submissions portal for scholarships, awards, fellowships and similar programs. Applicants submit, judges review and score, and staff manage the whole process." },
+  { cat: "Members & Community", name: "LARE Prep", url: "https://lareprep.aslalabs.org/login",
+    desc: "Registration and resources for L.A.R.E. Prep Week, ASLA's virtual sessions that help candidates prepare for the Landscape Architect Registration Examination. Signs in with ASLA single sign-on." },
+
+  { cat: "Members & Community", name: "Career Discovery Hub", url: "https://dmstickman74.github.io/career-discovery/",
+    desc: "A hub for ASLA's Career Discovery program, helping students and early explorers learn about careers in landscape architecture and find the programs, resources and next steps available to them." },
+
+  // Surveys & Feedback
+  { cat: "Surveys & Feedback", name: "Surveys", url: "https://surveys.aslalabs.org",
+    desc: "ASLA's survey platform for building and sending quick surveys, collecting responses and reviewing results, without a per-seat survey subscription." },
+  { cat: "Surveys & Feedback", name: "Tell", url: "https://tell.asla.org/admin",
+    desc: "An AI-powered interviewer for deeper feedback. Tell can hold a voice or kiosk conversation and ask intelligent follow-up questions, so you get richer answers than a standard form." },
+  { cat: "Surveys & Feedback", name: "Member Survey Discussion", url: "https://membersurvey.aslalabs.org/survey/discussion.html",
+    desc: "An interactive view of the 2026 member survey findings, so staff can explore results and discuss what members told us." },
+
+  // Sales, Finance & Performance
+  { cat: "Sales, Finance & Performance", name: "DevIQ", url: "https://deviq.aslalabs.org",
+    desc: "ASLA's development and sales CRM. Track companies, contacts, packages and sponsorship activity, with an activity feed on every company record." },
+  { cat: "Sales, Finance & Performance", name: "FinancialIQ (FinIQ)", url: "https://finiq.aslalabs.org",
+    desc: "Financial forecasting for ASLA staff, bringing revenue, budget and performance numbers together in one place. It is intended to eventually replace Solver." },
+  { cat: "Sales, Finance & Performance", name: "ContractIQ", url: "https://contractiq.aslalabs.org",
+    desc: "Contract creation and electronic signature. Send agreements and MSAs for signature, track who has signed, and keep completed contracts in one place." },
+  { cat: "Sales, Finance & Performance", name: "Reports", url: "https://reports.aslalabs.org",
+    desc: "Automated reporting. Delivers the weekly EXPO financial updates, conference and EXPO pace reports, rebook and commission reports straight to your inbox." },
+  { cat: "Sales, Finance & Performance", name: "KPI Tracker", url: "https://kpi.aslalabs.org/auth",
+    desc: "Where directors and staff update their key performance indicators ahead of Directors Meetings, with targets and status tracked against goals." },
+  { cat: "Sales, Finance & Performance", name: "Media Ad Server", url: "https://media.aslalabs.org",
+    desc: "The ad server and tracker for digital advertising. Manage placements, run campaigns and report on impressions and clicks." },
+
+  // Content, Events & Operations
+  { cat: "Content, Events & Operations", name: "DeckIQ", url: "https://deckiq.aslalabs.org",
+    keywords: "presentation presentations slides slide deck powerpoint",
+    desc: "Build and collaborate on slide decks. Create, rearrange and refine presentations with AI help and ASLA brand templates, and comment on decks with teammates." },
+  { cat: "Content, Events & Operations", name: "Digital Asset Manager", url: "https://assets.aslalabs.org/login",
+    keywords: "presentation presentations slides slide deck powerpoint photos photography images pictures logos brand graphics media library DAM",
+    desc: "ASLA's central library for images, video and documents. Search, preview and download approved photos, logos and graphics for presentations and other materials, and connect them to AI tools." },
+  { cat: "Content, Events & Operations", name: "Conference Concierge", url: "https://concierge.aslalabs.org",
+    desc: "An AI assistant built in-house for the annual conference. Attendees ask questions and plan their schedule, sessions and logistics." },
+  { cat: "Content, Events & Operations", name: "ProjectIQ", url: null,
+    desc: "Coming soon: ASLA's project management portal. Plan work, assign tasks and track progress across teams and committees, separate from the Planner calendar." },
+  { cat: "Content, Events & Operations", name: "Planner", url: "https://planner.aslalabs.org",
+    desc: "The shared planning workspace and Master Events Calendar for Communications and Events, including content and event submission forms." },
+  { cat: "Content, Events & Operations", name: "Pages", url: "https://pages.aslalabs.org",
+    desc: "Quickly published pages for ASLA, such as monthly MD&A reports, conference microsites and email mockups. Some pages are password protected." },
+
+  // AI & Productivity
+  { cat: "AI & Productivity", name: "ASLA Chat", url: "https://chat.aslalabs.org",
+    desc: "ASLA's own AI chat workspace, with ASLA brand templates, connections to ASLA tools and shareable conversations." },
+  { cat: "AI & Productivity", name: "Help Desk", url: "https://help.aslalabs.org",
+    desc: "Create an account to request a new feature, report a problem or ask for a change, and assign it to the right person." }
+];
+
+const main = document.getElementById("main");
+const chips = document.getElementById("chips");
+const q = document.getElementById("q");
+const empty = document.getElementById("empty");
+const cats = ["All", ...new Set(TOOLS.map(t => t.cat))];
+let active = "All";
+
+function el(tag, props = {}, ...kids) {
+  const n = Object.assign(document.createElement(tag), props);
+  kids.forEach(k => n.append(k));
+  return n;
+}
+
+function render() {
+  const term = q.value.trim().toLowerCase();
+  main.replaceChildren();
+  let shown = 0;
+  for (const cat of cats.slice(1)) {
+    if (active !== "All" && active !== cat) continue;
+    const items = TOOLS.filter(t => t.cat === cat &&
+      (!term || (t.name + " " + t.desc + " " + (t.keywords || "")).toLowerCase().includes(term)));
+    if (!items.length) continue;
+    shown += items.length;
+    const grid = el("div", { className: "grid" });
+    for (const t of items) {
+      const host = t.url ? new URL(t.url).host : "link coming soon";
+      const btn = t.url
+        ? el("a", { className: "btn", href: t.url, target: "_blank", rel: "noopener" }, "Open / Log in")
+        : el("span", { className: "btn soon" }, "Link coming soon");
+      grid.append(el("article", { className: "tile" },
+        el("h3", {}, t.name), el("div", { className: "host" }, host),
+        el("p", {}, t.desc), btn));
+    }
+    main.append(el("h2", {}, cat), grid);
+  }
+  empty.style.display = shown ? "none" : "block";
+}
+
+cats.forEach(c => {
+  const b = el("button", { className: "chip", type: "button" }, c);
+  b.setAttribute("aria-pressed", c === active);
+  b.onclick = () => {
+    active = c;
+    [...chips.children].forEach(x => x.setAttribute("aria-pressed", x === b));
+    render();
+  };
+  chips.append(b);
+});
+q.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
